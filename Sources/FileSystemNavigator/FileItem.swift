@@ -48,7 +48,9 @@ public class FileItem: Identifiable {
         guard fileDescriptor != -1 else { return }
         source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: fileDescriptor, eventMask: [.write, .rename, .delete], queue: DispatchQueue.global())
         source?.setEventHandler { [weak self] in
-            self?.loadFileItems()
+            DispatchQueue.main.async {
+                    self?.loadFileItems()
+            }
         }
         source?.setCancelHandler {
             close(fileDescriptor)
@@ -70,9 +72,7 @@ extension FileItem: Hashable, Equatable {
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-//        hasher.combine(isDirectory)
         hasher.combine(children)
-//        hasher.combine(isEditing)
     }
     
     public static func == (lhs: FileItem, rhs: FileItem) -> Bool {
