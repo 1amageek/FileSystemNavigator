@@ -12,9 +12,9 @@ struct FileItemView<Content: View>: View {
         
     @Binding var item: FileItem
     
-    var content: ((Binding<FileItem>) -> Content)
+    var content: ((Binding<FileItem>, Bool) -> Content)
     
-    init(item: Binding<FileItem>, @ViewBuilder content: @escaping (Binding<FileItem>) -> Content) {
+    init(item: Binding<FileItem>, @ViewBuilder content: @escaping (Binding<FileItem>, Bool) -> Content) {
         self._item = item
         self._name = State(initialValue: item.wrappedValue.name)
         self.content = content
@@ -32,7 +32,7 @@ struct FileItemView<Content: View>: View {
                         fileSystem.editNameEnd()
                     }
             } else {
-                content($item)
+                content($item, isHovered)
             }
         }
         .contentShape(Rectangle())

@@ -6,9 +6,9 @@ public struct FileSystemNavigator<RowItem: View>: View {
     
     @State var sections: [FileItemSection]
     
-    var content: (Binding<FileItem>) -> RowItem
+    var content: (Binding<FileItem>, Bool) -> RowItem
     
-    public init(sections: [FileItemSection], @ViewBuilder content: @escaping (Binding<FileItem>) -> RowItem = { _ in EmptyView() }) {
+    public init(sections: [FileItemSection], @ViewBuilder content: @escaping (Binding<FileItem>, Bool) -> RowItem = { _,_ in EmptyView() }) {
         self._sections = State(initialValue: sections)
         self.content = content
     }
@@ -82,7 +82,7 @@ public struct FileSystemNavigator<RowItem: View>: View {
 #Preview {
     @State var fileSystem = FileSystem.shared
     
-    return fileSystem.view { _ in 
+    return fileSystem.view { _, _ in 
         Text("Content")
     }
 }

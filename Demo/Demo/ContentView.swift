@@ -19,7 +19,7 @@ struct ContentView: View {
             if let url {
                 fileSystem.view([
                     .init(name: "Project", item: .init(url: url))
-                ]) { item in
+                ]) { item, isHovered in
                     Text(item.wrappedValue.name)
                 }
             } else {

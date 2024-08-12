@@ -59,16 +59,8 @@ public final class FileSystem {
 extension FileSystem {
     
     @ViewBuilder
-    public func view<Content: View>(_ sections: [FileItemSection] = [], @ViewBuilder content: @escaping (Binding<FileItem>) -> Content) -> some View {
+    public func view<Content: View>(_ sections: [FileItemSection] = [], @ViewBuilder content: @escaping (Binding<FileItem>, Bool) -> Content) -> some View {
         FileSystemNavigator(sections: sections, content: content)
     }
 }
 
-
-#Preview {
-    @State var fileSystem = FileSystem.shared
-    
-    return fileSystem.view { _ in
-        Text("Content")
-    }
-}
