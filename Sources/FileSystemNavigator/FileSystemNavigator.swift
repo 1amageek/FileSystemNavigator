@@ -41,24 +41,6 @@ public struct FileSystemNavigator<RowItem: View>: View {
                                     Text("Delete")
                                     Image(systemName: "trash")
                                 }
-                                Button {
-                                    fileSystem.copy(item: item, to: item.url)
-                                } label: {
-                                    Text("Copy")
-                                    Image(systemName: "doc.on.doc")
-                                }
-                                Button {
-                                    fileSystem.move(item: item, to: item.url)
-                                } label: {
-                                    Text("Move")
-                                    Image(systemName: "arrow.right")
-                                }
-                                Button {
-                                    fileSystem.rename(item: item, newName: "NewName")
-                                } label: {
-                                    Text("Rename")
-                                    Image(systemName: "pencil")
-                                }
                             }
                     }
                 } header: {
