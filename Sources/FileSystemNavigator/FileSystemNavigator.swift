@@ -21,12 +21,13 @@ public struct FileSystemNavigator<RowItem: View>: View {
                 Section {
                     OutlineGroup(section.item, children: \.children) { item in
                         FileItemView(item: item, content: content)
+                            .onAppear { item.wrappedValue = fileSystem.loadChildrenIfNeeded(for: item.wrappedValue) }
                             .tag(item.wrappedValue)
                             .contextMenu {
-                                let item = item.wrappedValue
+                                let targetItem = item.wrappedValue
 #if os(macOS)
                                 Button {
-                                    NSWorkspace.shared.activateFileViewerSelecting([item.url])
+                                    NSWorkspace.shared.activateFileViewerSelecting([targetItem.url])
                                 } label: {
                                     Text("Show in Finder")
                                     Image(systemName: "finder")
@@ -34,9 +35,8 @@ public struct FileSystemNavigator<RowItem: View>: View {
                                 
                                 Divider()
 #endif
-                                
                                 Button {
-                                    fileSystem.delete(item: item)
+                                    fileSystem.delete(items: [targetItem])
                                 } label: {
                                     Text("Delete")
                                     Image(systemName: "trash")
@@ -46,7 +46,8 @@ public struct FileSystemNavigator<RowItem: View>: View {
                 } header: {
                     Text(section.wrappedValue.name)
                 }
-                .onAppear { section.wrappedValue.item.loadFileItems() }
+                .onAppear { section.wrappedValue.item = fileSystem.loadChildrenIfNeeded(for: section.wrappedValue.item) }
+
             }
         }
         .focusable()
@@ -66,7 +67,7 @@ public struct FileSystemNavigator<RowItem: View>: View {
         .alert("Move to Trash", isPresented: $system.showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Move to Trash", role: .destructive) {
-                fileSystem.deleteItems(fileSystem.selection)
+                fileSystem.delete(items: fileSystem.selection)
             }
         } message: {
             let selectedFiles = fileSystem.selection.filter { !$0.isDirectory }
@@ -82,7 +83,7 @@ public struct FileSystemNavigator<RowItem: View>: View {
 #Preview {
     @State var fileSystem = FileSystem.shared
     
-    return fileSystem.view { _, _ in 
+    return fileSystem.view { _, _ in
         Text("Content")
     }
 }

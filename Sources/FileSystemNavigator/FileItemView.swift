@@ -24,12 +24,15 @@ struct FileItemView<Content: View>: View {
         HStack {
             Image(systemName: item.isDirectory ? "folder" : "doc")
                 .foregroundColor(item.isDirectory ? .blue : .gray)
-            if item.isEditing {
+            if fileSystem.editItem?.url == item.url {
                 TextField("", text: $name)
                     .focused($focus)
                     .onSubmit {
-                        fileSystem.rename(item: item, newName: name)
+                        fileSystem.rename(item: item, to: name)
                         fileSystem.editNameEnd()
+                    }
+                    .onAppear {
+                        focus = true
                     }
             } else {
                 content($item, isHovered)
@@ -38,11 +41,6 @@ struct FileItemView<Content: View>: View {
         .contentShape(Rectangle())
         .onHover { isHovered in
             self.isHovered = isHovered
-        }
-        .onChange(of: item.isEditing) { oldValue, newValue in
-            if newValue {
-                focus = newValue
-            }
-        }        
+        }     
     }
 }

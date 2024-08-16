@@ -1,70 +1,43 @@
 import Foundation
+import SwiftUI
 
-@Observable
-public class FileItem: Identifiable {
+public struct FileItem: Identifiable {
     
-    public var id: String { url.absoluteString }
-    public var name: String { url.lastPathComponent }
+    public var id: String
+    public var name: String
     public var url: URL
     public var isDirectory: Bool
-    public var isEditing: Bool
     public var children: [FileItem]?
     
-    @ObservationIgnored
-    private var source: DispatchSourceFileSystemObject?
-    
-    public init(url: URL) {
+    public init(url: URL, children: [FileItem]? = nil) {
         self.url = url
+        self.id = url.absoluteString
+        self.name = url.lastPathComponent
         var isDirectory: ObjCBool = false
         FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
-        self.isEditing = false
         self.isDirectory = isDirectory.boolValue
-        if self.isDirectory {
-            self.children = []
-        } else {
-            self.children = nil
-        }
-        loadFileItems()
+        self.children = children
+    }
+}
+
+extension FileItem {
+    
+    @discardableResult
+    public mutating func loadChildren() -> [FileItem]? {
+        self.children = getChildren()
+        return self.children
     }
     
-    public func loadFileItems() {
-        if self.isDirectory {
-            startMonitoring()
-            let fileManager = FileManager.default
-            guard let contents = try? fileManager.contentsOfDirectory(
-                at: url,
-                includingPropertiesForKeys: nil,
-                options: [.skipsHiddenFiles]) else {
-                return
-            }
-            self.children = contents.map { FileItem(url: $0) }
-        } else {
-            self.children = nil
+    public func getChildren() -> [FileItem]? {
+        guard self.isDirectory else { return nil }
+        let fileManager = FileManager.default
+        guard let contents = try? fileManager.contentsOfDirectory(
+            at: self.url,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]) else {
+            return nil
         }
-    }
-    
-    private func startMonitoring() {
-        let fileDescriptor = open(url.path, O_EVTONLY)
-        guard fileDescriptor != -1 else { return }
-        source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: fileDescriptor, eventMask: [.write, .rename, .delete], queue: DispatchQueue.global())
-        source?.setEventHandler { [weak self] in
-            DispatchQueue.main.async {
-                    self?.loadFileItems()
-            }
-        }
-        source?.setCancelHandler {
-            close(fileDescriptor)
-        }
-        source?.resume()
-    }
-    
-    func stopMonitoring() {
-        source?.cancel()
-        source = nil
-    }
-    
-    deinit {
-        stopMonitoring()
+        return contents.map { FileItem(url: $0) }
     }
 }
 
